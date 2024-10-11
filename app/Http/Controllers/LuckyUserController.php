@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewTransactionEvent;
 use App\Jobs\RewardToUserJob;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class LuckyUserController extends Controller
 
         RewardToUserJob::dispatch($user, $amount)->onQueue('reward');
 
-        return response()->json(['message' => "$amount$ given to a lucky user and an email sent."]);
+        return response()->json(['message' => "$amount$ given to a userId: $user->id and an email sent."]);
     }
 
     /**

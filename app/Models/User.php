@@ -13,6 +13,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    public mixed $wallet;
+
     /**
      * The attributes that are mass assignable.
      *

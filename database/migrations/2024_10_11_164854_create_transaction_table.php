@@ -13,10 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('wallet', function (Blueprint $table) {
+        Schema::create('transaction', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('balance');
+            $table->unsignedBigInteger('wallet_id')->index();
+            $table->unsignedBigInteger('amount');
+            $table->unsignedSmallInteger('transaction_type');
 
             $table->timestamps();
             $table->softDeletes();
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('wallet');
+        Schema::dropIfExists('transaction');
     }
 };

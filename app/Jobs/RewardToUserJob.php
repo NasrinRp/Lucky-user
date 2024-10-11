@@ -2,13 +2,16 @@
 
 namespace App\Jobs;
 
+use App\Events\NewTransactionEvent;
 use App\Mail\RewardNotification;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class RewardToUserJob implements ShouldQueue
@@ -37,17 +40,23 @@ class RewardToUserJob implements ShouldQueue
      */
     public function handle()
     {
-        $wallet = $this->user->wallet;
+        DB::transaction(function () {
+            $wallet = $this->user->wallet;
 
-        if ($wallet) {
-            $wallet->update([
-                'amount' => $wallet->amount + $this->amount,
-            ]);
+            if ($wallet) {
+                $wallet->transactions()->create([
+                    'amount' => $this->amount,
+                    'transaction_type' => Transaction::$transactionTypes['CODE']
+                ]);
 
-            Mail::to($this->user->email)->send(new RewardNotification($this->amount));
-        } else {
-            throw new \Exception('Wallet not found for user ID: ' . $this->user->id);
-        }
+                event(new NewTransactionEvent($this->user, $this->amount));
+
+                Mail::to($this->user->email)->send(new RewardNotification($this->amount));
+            } else {
+                // Handle the case where the wallet is not found
+                throw new \Exception('Wallet not found for user ID: ' . $this->user->id);
+            }
+        });
     }
 
 }
